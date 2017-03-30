@@ -1,6 +1,7 @@
 use data::Data;
 use std::collections::HashMap;
 use chrono::offset::local::Local;
+use chrono::prelude::DateTime;
 
 pub struct Storage<T> {
     datum: HashMap<String, Vec<Data<T>>>,
@@ -12,10 +13,14 @@ impl<T> Storage<T> {
     }
 
     pub fn store(&mut self, key: String, value: T) {
+        self.store_at_time(key, value, Local::now());
+    }
+
+    pub fn store_at_time(&mut self, key: String, value: T, date_time: DateTime<Local>) {
         let mut vector = self.datum.entry(key).or_insert(Vec::new());
 
         let data = Data {
-            date_time: Local::now(),
+            date_time: date_time,
             value: value,
         };
 
@@ -28,8 +33,6 @@ impl<T> Storage<T> {
             Some(v) => v.last().map(|ref mut x| &x.value),
             None => None,
         }
-        //let last =
-        //.unwrap().last().map(|ref mut x| &x.value)
     }
 }
 
@@ -70,3 +73,12 @@ fn retrieve_on_no_data_returns_none() {
 
     assert_eq!(result, None);
 }
+
+#[test]
+fn can_store_at_specific_time() {
+    let mut storage = Storage::new();
+    storage.store_at_time("key".to_string(), 1, Local::now());
+}
+
+#[test]
+fn can_retrieve_at_specific_time() {}
