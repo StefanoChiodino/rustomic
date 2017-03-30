@@ -1,29 +1,30 @@
 use data::Data;
+use std::collections::HashMap;
+use chrono::offset::local::Local;
 
 pub struct Storage<T> {
-    data: Vec<Data<T>>,
+    datum: HashMap<String, Vec<Data<T>>>,
 }
 
 impl<T> Storage<T> {
     pub fn new() -> Storage<T> {
-        Storage { data: Vec::new() }
+        Storage { datum: HashMap::new() }
     }
 
     pub fn store(&mut self, key: String, value: T) {
+        let mut vector = self.datum.entry(key).or_insert(Vec::new());
+
         let data = Data {
-            key: key,
+            date_time: Local::now(),
             value: value,
         };
-        self.data.push(data);
+
+        vector.push(data);
     }
 
-    pub fn retrieve(&mut self, _: String) -> Option<&T> {
-        let last = self.data.last();
+    pub fn retrieve(&mut self, key: String) -> Option<&T> {
+        let last = self.datum.get(&key).unwrap().last();
         last.map(|ref mut x| &x.value)
-        /*match last {
-            Some(t) => return t.value,
-            None => return None,
-        }*/
     }
 }
 
