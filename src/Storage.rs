@@ -23,8 +23,13 @@ impl<T> Storage<T> {
     }
 
     pub fn retrieve(&mut self, key: String) -> Option<&T> {
-        let last = self.datum.get(&key).unwrap().last();
-        last.map(|ref mut x| &x.value)
+        let vector = self.datum.get(&key);
+        match vector {
+            Some(v) => v.last().map(|ref mut x| &x.value),
+            None => None,
+        }
+        //let last =
+        //.unwrap().last().map(|ref mut x| &x.value)
     }
 }
 
@@ -55,4 +60,13 @@ fn can_retrieve_latest_data() {
     let latest_value = storage.retrieve("key".to_string()).unwrap();
 
     assert_eq!(*latest_value, 2);
+}
+
+#[test]
+fn retrieve_on_no_data_returns_none() {
+    let mut storage = Storage::<i32>::new();
+
+    let result = storage.retrieve("key".to_string());
+
+    assert_eq!(result, None);
 }
