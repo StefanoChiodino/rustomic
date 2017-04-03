@@ -1,25 +1,43 @@
-extern crate chrono;
-use chrono::datetime::DateTime;
-use chrono::offset::local::Local;
+// extern crate chrono;
+// use chrono::datetime::DateTime;
+// use chrono::offset::local::Local;
 
-mod data;
-use data::Data;
+// mod data;
+// use data::Data;
 
-mod storage;
-use storage::Storage;
+//mod storage;
+//use storage::Storage;
+
+extern crate iron;
+
+use iron::prelude::*;
+use iron::status;
+
+extern crate router;
+use router::Router;
+
+struct StoreRequest<T> {
+    key: String,
+    value: T,
+}
 
 fn main() {
-    /*let data = Data {
-        key: "key".to_string(),
-        value: 2,
-    };
+    let mut router = Router::new();
+    router.post("/store/:key/:value", handler, "data");
 
-    let mut storage = Storage::<i32> { data: Vec::new() };
+    Iron::new(router).http("localhost:3000").unwrap();
+}
 
-    storage.store("key".to_string(), 23);
-
-    println!("key: {:?}, value: {:?}", data.key, data.value);
-    println!("key: {:?}, value: {:?}",
-             storage.data[0].key,
-             storage.data[0].value);*/
+fn handler(req: &mut Request) -> IronResult<Response> {
+    let key = req.extensions
+        .get::<Router>()
+        .unwrap()
+        .find("key")
+        .unwrap_or("/");
+    let value = req.extensions
+        .get::<Router>()
+        .unwrap()
+        .find("value")
+        .unwrap_or("/");
+    Ok(Response::with((status::Ok, key)))
 }
