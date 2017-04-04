@@ -16,28 +16,54 @@ use iron::status;
 extern crate router;
 use router::Router;
 
-struct StoreRequest<T> {
+extern crate rustc_serialize;
+use rustc_serialize::json;
+
+use std::io::Read;
+
+#[derive(RustcDecodable)]
+struct StoreRequest {
     key: String,
-    value: T,
+    value: String,
+}
+
+#[derive(RustcEncodable)]
+struct Response {
+    succesful: bool,
+    message: String,
 }
 
 fn main() {
-    let mut router = Router::new();
-    router.post("/store/:key/:value", handler, "data");
+    let server_address = "localhost:3000".to_string();
 
-    Iron::new(router).http("localhost:3000").unwrap();
+    start_server(server_address);
 }
 
-fn handler(req: &mut Request) -> IronResult<Response> {
-    let key = req.extensions
-        .get::<Router>()
-        .unwrap()
-        .find("key")
-        .unwrap_or("/");
-    let value = req.extensions
-        .get::<Router>()
-        .unwrap()
-        .find("value")
-        .unwrap_or("/");
-    Ok(Response::with((status::Ok, key)))
+fn start_server(server_address: String) {
+    let mut router = Router::new();
+    router.post("/store", store, "store");
+
+    Iron::new(router).http(server_address).unwrap();
+}
+
+/*
+curl --request POST \
+  --url http://localhost:3000/store \
+  --header 'cache-control: no-cache' \
+  --header 'content-type: application/json' \
+  --header 'postman-token: 0e894bbb-9a7c-b369-aa56-c5263a453198' \
+  --data '{\n   "key": "key",\n "value": "value"\n}'
+  */
+fn store(request: &mut Request) -> IronResult<iron::Response> {
+    let mut payload = String::new();
+    request.body.read_to_string(&mut payload).unwrap();
+    let store_request: StoreRequest = json::decode(&payload).unwrap();
+
+    let response = Response {
+        succesful: true,
+        message: "Stored".to_string(),
+    };
+    let encoded_response = json::encode(&response).unwrap();
+
+    Ok(iron::Response::with((status::Ok, encoded_response)))
 }

@@ -7,3 +7,4 @@ authors = ["stefano"]
 chrono = "0.3"
 iron = "0.5.1"
 router = "*"
+rustc-serialize = "*"
