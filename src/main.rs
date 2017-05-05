@@ -1,69 +1,40 @@
-// extern crate chrono;
-// use chrono::datetime::DateTime;
-// use chrono::offset::local::Local;
+#![feature(plugin)]
+#![plugin(rocket_codegen)]
 
-// mod data;
-// use data::Data;
+extern crate rocket;
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate rocket_contrib;
+#[macro_use]
+extern crate serde_derive;
 
-//mod storage;
-//use storage::Storage;
+use rocket_contrib::{JSON, Value};
 
-extern crate iron;
-
-use iron::prelude::*;
-use iron::status;
-
-extern crate router;
-use router::Router;
-
-extern crate rustc_serialize;
-use rustc_serialize::json;
-
-use std::io::Read;
-
-#[derive(RustcDecodable)]
+#[derive(Deserialize)]
 struct StoreRequest {
     key: String,
     value: String,
 }
 
-#[derive(RustcEncodable)]
+#[derive(Serialize,)]
 struct Response {
     succesful: bool,
     message: String,
 }
 
 fn main() {
-    let server_address = "localhost:3000".to_string();
-
-    start_server(server_address);
+    rocket::ignite().mount("/", routes![store]).launch();
 }
 
-fn start_server(server_address: String) {
-    let mut router = Router::new();
-    router.post("/store", store, "store");
-
-    Iron::new(router).http(server_address).unwrap();
-}
-
-/*
-curl --request POST \
-  --url http://localhost:3000/store \
-  --header 'cache-control: no-cache' \
-  --header 'content-type: application/json' \
-  --header 'postman-token: 0e894bbb-9a7c-b369-aa56-c5263a453198' \
-  --data '{\n   "key": "key",\n "value": "value"\n}'
-  */
-fn store(request: &mut Request) -> IronResult<iron::Response> {
-    let mut payload = String::new();
-    request.body.read_to_string(&mut payload).unwrap();
-    let store_request: StoreRequest = json::decode(&payload).unwrap();
+#[post("/store", data = "<request>")]
+fn store(request: JSON<StoreRequest>) -> JSON<Response> {
+    let store_request: StoreRequest = request.0;
 
     let response = Response {
         succesful: true,
         message: "Stored".to_string(),
     };
-    let encoded_response = json::encode(&response).unwrap();
 
-    Ok(iron::Response::with((status::Ok, encoded_response)))
+    JSON(response)
 }

@@ -5,6 +5,11 @@ authors = ["stefano"]
 
 [dependencies]
 chrono = "0.3"
-iron = "0.5.1"
-router = "*"
-rustc-serialize = "*"
+rocket = "0.2.6"
+rocket_codegen = "0.2.6"
+
+serde = "0.9"
+serde_json = "0.9"
+serde_derive = "0.9"
+
+rocket_contrib = "0.2.6"
